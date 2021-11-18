@@ -2,7 +2,7 @@ const { default: axios } = require("axios");
 var express = require("express");
 var app = express();
 
-const formatArray = ["xml", "text", "json"];
+const formatArray = ["xml", "text", "json", "csv"];
 
 const validFormat = (req, res, next) => {
     const { format } = req.params;
@@ -33,6 +33,9 @@ const formatResponse = (format, response) => {
     
         case "text":
             return `status_${response.status}|result_${response.data}`;
+
+        case "csv":
+            return `"status","result"\r\n"${response.status}",${response.data}\r\n`;
     }
 }
 
@@ -129,6 +132,15 @@ app.get("/api/:format/string/:text/count/specialchar", validFormat, async (req, 
 })
 
 app.get("/api/:format/string/:text/count/whitespace", validFormat, async (req, res) => {
+    const { text, format } = req.params;
+
+    let response = await axios.get(`http://localhost:3000/api/string/${text}/count/whitespace`)
+
+    res.status = 200;
+    res.send(formatResponse(format, response.data))
+})
+
+app.get("/api/:format/string/:text/count", validFormat, async (req, res) => {
     const { text, format } = req.params;
 
     let response = await axios.get(`http://localhost:3000/api/string/${text}/count/whitespace`)
